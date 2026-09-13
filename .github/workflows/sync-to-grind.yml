@@ -1,0 +1,52 @@
+name: Sync Saurabh to The_Grind
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Saurabh repo
+        uses: actions/checkout@v4
+        with:
+          path: source
+
+      - name: Checkout The_Grind
+        uses: actions/checkout@v4
+        with:
+          repository: viv-techcode/The_Grind
+          token: ${{ secrets.CENTRAL_REPO_TOKEN }}
+          ref: main
+          path: target
+          fetch-depth: 0
+
+      - name: Copy files into Saurabh Singh folder
+        run: |
+          mkdir -p "target/Saurabh Singh"
+
+          rsync -av \
+            --exclude=".git/" \
+            --exclude=".github/" \
+            source/ "target/Saurabh Singh/"
+
+      - name: Commit and push
+        run: |
+          cd target
+
+          git config user.name "Saurabh LeetHub Sync"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add "Saurabh Singh"
+
+          if git diff --cached --quiet; then
+            echo "No changes to sync"
+            exit 0
+          fi
+
+          git commit -m "Sync Saurabh LeetCode progress"
+          git pull --rebase origin main
+          git push origin main
